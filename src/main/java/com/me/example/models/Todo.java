@@ -1,23 +1,19 @@
 package com.me.example.models;
 
 import lombok.*;
-import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
-//@Data
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
-//@NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Todo {
     @Id
     @GeneratedValue
@@ -41,18 +37,4 @@ public class Todo {
     @UpdateTimestamp
     @Column
     private LocalDateTime updatedAt;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Todo todo = (Todo) o;
-
-        return Objects.equals(id, todo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return 177241809;
-    }
 }
