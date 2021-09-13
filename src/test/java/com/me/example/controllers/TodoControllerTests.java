@@ -1,6 +1,8 @@
 package com.me.example.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.me.example.dtos.TodoDto;
 import com.me.example.models.Todo;
 import com.me.example.models.TodoStatus;
 import com.me.example.repositories.TodoRepository;
@@ -25,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TodoController.class)
-public class TodoControllerTests {
+class TodoControllerTests {
     @Autowired
     MockMvc mvc;
 
@@ -52,7 +54,7 @@ public class TodoControllerTests {
     */
 
     @Test
-    public void getAllTodos_200Success() throws Exception {
+    void getAllTodos_200Success() throws Exception {
         Todo todo1 = Todo.builder()
                 .id(1L)
                 .title("Task A")
@@ -77,12 +79,12 @@ public class TodoControllerTests {
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data", hasSize(2)));
     }
 
     @Test
-    public void getTodoById_200Success() throws Exception {
+    void getTodoById_200Success() throws Exception {
         Todo todo = Todo.builder()
                 .id(1L)
                 .title("Task A")
@@ -98,16 +100,15 @@ public class TodoControllerTests {
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.title").isString())
-                .andExpect(jsonPath("$.description").isString())
-                .andExpect(jsonPath("$.status").value("DONE"));
+                .andExpect(jsonPath("$.data.id").isNumber())
+                .andExpect(jsonPath("$.data.title").isString())
+                .andExpect(jsonPath("$.data.description").isString())
+                .andExpect(jsonPath("$.data.status").value("DONE"));
     }
 
     @Test
-    public void createNewTodo_200Success() throws Exception {
-        Todo newTodo = Todo.builder()
-                .id(3L)
+    void createNewTodo_200Success() throws Exception {
+        TodoDto newTodo = TodoDto.builder()
                 .title("Task C")
                 .description("Description C")
                 .status(TodoStatus.IN_PROGRESS)
@@ -123,14 +124,14 @@ public class TodoControllerTests {
     }
 
     @Test
-    public void updateTodo_200Success() throws Exception {
-        Todo todo = Todo.builder()
+    void updateTodo_200Success() throws Exception {
+        TodoDto todo = TodoDto.builder()
                 .title("Task C")
                 .description("Description C")
                 .status(TodoStatus.IN_PROGRESS)
                 .build();
 
-        doNothing().when(todoService).updateTodo(anyLong(), any(Todo.class));
+        doNothing().when(todoService).updateTodo(anyLong(), any(TodoDto.class));
 
         this.mvc.perform(
                         put("/todo/{id}", 1L)
@@ -142,7 +143,7 @@ public class TodoControllerTests {
     }
 
     @Test
-    public void deleteTodo_200Success() throws Exception {
+    void deleteTodo_200Success() throws Exception {
         doNothing().when(todoService).deleteTodoById(anyLong());
 
         this.mvc.perform(
@@ -151,5 +152,20 @@ public class TodoControllerTests {
                 )
                 .andDo(print())
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void whenRequestBodyIsInvalid_thenReturnStatus400() throws Exception {
+        this.mvc.perform(
+                        post("/todo")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(this.mapper.writeValueAsString(new TodoDto()))
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(
+                        jsonPath("$.code")
+                                .value("INVALID_REQUEST")
+                );
     }
 }

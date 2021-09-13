@@ -11,6 +11,7 @@ The followings are needed to build, test and run the project.
 ### Dependencies:
 - Spring Web
 - Spring Data JPA
+- Spring Validation
 - Spring Boot DevTools
 - Lombok
 - H2 Database
